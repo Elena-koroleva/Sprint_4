@@ -8,7 +8,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 //страница заказа с заполнением форм заказа
 public class OrderPage {
     //веб-драйвер
-    private WebDriver driver;
+    private final WebDriver driver;
+    private final WebDriverWait wait;
     //локаторы для формы заказа "Для кого самокат"
     //поле имя
     private final By nameInput = By.xpath(".//input[@placeholder='* Имя']");
@@ -50,48 +51,95 @@ public class OrderPage {
 
     public OrderPage(WebDriver driver) {
         this.driver = driver;
+        this.wait= new WebDriverWait(driver,5);
     }
-    //методы
-    //заполняем форму заказа "Для кого самокат"
-    public void fillWhoIsScooterForm(String name, String surname, String address, String metroStation, String phone) {
+    // методы "Для кого самокат"
+
+    public void enterName(String name) {
         driver.findElement(nameInput).sendKeys(name);
-        driver.findElement(surnameInput).sendKeys(surname);
-        driver.findElement(addressInput).sendKeys(address);
-        driver.findElement(metroStationInput).click();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfElementLocated(metroSearchOptions));
-        driver.findElement(By.xpath(".//*[text()='"+metroStation+"']")).click();
-        driver.findElement(phoneInput).sendKeys(phone);
-        driver.findElement(nextButton).click();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfElementLocated(dateInput));
     }
 
-    //заполняем форму заказа "Про аренду"
-    public void fillAboutRentForm(String orderDate, String orderDuration, String color, String comment){
+    public void enterSurname(String surname) {
+        driver.findElement(surnameInput).sendKeys(surname);
+    }
+
+    public void enterAddress(String address) {
+        driver.findElement(addressInput).sendKeys(address);
+    }
+
+    public void selectMetroStation(String metroStation) {
+        driver.findElement(metroStationInput).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(metroSearchOptions));
+        driver.findElement(By.xpath(".//*[text()='" + metroStation + "']")).click();
+    }
+
+    public void enterPhone(String phone) {
+        driver.findElement(phoneInput).sendKeys(phone);
+    }
+
+    public void clickNextButton() {
+        driver.findElement(nextButton).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(dateInput));
+    }
+
+    // методы формы "Про аренду"
+
+    public void selectDate(String orderDate) {
         driver.findElement(dateInput).click();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfAllElementsLocatedBy(calendar));
+        wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(calendar));
         driver.findElement(By.xpath(".//div[@aria-label='" + orderDate + "']")).click();
+    }
+
+    public void selectRentDuration(String orderDuration) {
         driver.findElement(rentPeriodInput).click();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfAllElementsLocatedBy(rentPeriodList));
+        wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(rentPeriodList));
         driver.findElement(By.xpath(".//div[text()='" + orderDuration + "']")).click();
-        if(color.equals("чёрный жемчуг")) {
+    }
+
+    public void selectColor(String color) {
+        if ("чёрный жемчуг".equalsIgnoreCase(color)) {
             driver.findElement(blackColorCheckbox).click();
-        } else if(color.equals("серая безысходность")) {
+        } else if ("серая безысходность".equalsIgnoreCase(color)) {
             driver.findElement(greyColorCheckbox).click();
         }
+    }
+
+    public void enterComment(String comment) {
         driver.findElement(commentInput).sendKeys(comment);
+    }
+
+    public void clickOrderButton() {
         driver.findElement(orderButton).click();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfAllElementsLocatedBy(confirmOrderModal));
+        wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(confirmOrderModal));
+    }
+
+    public void clickYesButton() {
         driver.findElement(yesButton).click();
     }
-    //проверяем, что появилось окно "Заказ оформлен"
+
+    // Методы-сценарии (шаги)
+
+    public void fillWhoIsScooterForm(String name, String surname, String address, String metroStation, String phone) {
+        enterName(name);
+        enterSurname(surname);
+        enterAddress(address);
+        selectMetroStation(metroStation);
+        enterPhone(phone);
+        clickNextButton();
+    }
+
+    public void fillAboutRentForm(String orderDate, String orderDuration, String color, String comment) {
+        selectDate(orderDate);
+        selectRentDuration(orderDuration);
+        selectColor(color);
+        enterComment(comment);
+        clickOrderButton();
+        clickYesButton();
+    }
+
+    // Проверка появления окна успешного заказа
     public boolean isSuccessOrderModalDisplayed() {
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfElementLocated(successOrderModal));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(successOrderModal));
         return driver.findElement(successOrderModal).isDisplayed();
     }
 }

@@ -7,31 +7,20 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.util.Set;
+
 //главная страница
 public class MainPage {
     //веб-драйвер
-    private WebDriver driver;
+    private final WebDriver driver;
+    private final WebDriverWait wait;
+    //Константа с URL главной страницы
+    public static final String MAIN_PAGE_URL = "https://qa-scooter.praktikum-services.ru/";
     //локатор на Куки
     public final By cookieButton = By.id("rcc-confirm-button");
-    //"Вопросы о важном"
-    //локаторы на вопросы
-    private final By question_0 = By.id("accordion__heading-0");
-    private final By question_1 = By.id("accordion__heading-1");
-    private final By question_2 = By.id("accordion__heading-2");
-    private final By question_3 = By.id("accordion__heading-3");
-    private final By question_4 = By.id("accordion__heading-4");
-    private final By question_5 = By.id("accordion__heading-5");
-    private final By question_6 = By.id("accordion__heading-6");
-    private final By question_7 = By.id("accordion__heading-7");
-    //локаторы на ответы
-    private final By answer_0 = By.id("accordion__panel-0");
-    private final By answer_1 = By.id("accordion__panel-1");
-    private final By answer_2 = By.id("accordion__panel-2");
-    private final By answer_3 = By.id("accordion__panel-3");
-    private final By answer_4 = By.id("accordion__panel-4");
-    private final By answer_5 = By.id("accordion__panel-5");
-    private final By answer_6 = By.id("accordion__panel-6");
-    private final By answer_7 = By.id("accordion__panel-7");
+    //динамические локаторы для вопросов и ответов
+    private final String questionTemplateId = "accordion__heading-%d";
+    private final String answerTemplateId = "accordion__panel-%d";
     //локатор для верхней кнопки "Заказать"
     private final By upperOrderButton = By.xpath(".//div[@class='Header_Nav__AGCXC']/button[text()='Заказать']");
     //локатор для нижней кнопки "Заказать"
@@ -43,6 +32,7 @@ public class MainPage {
 
     public MainPage(WebDriver driver) {
         this.driver = driver;
+        this.wait= new WebDriverWait(driver,5);
     }
     //методы
     // Принять куки
@@ -57,37 +47,29 @@ public class MainPage {
     }
     // Кликнуть по вопросу по его индексу (0-7)
     public void clickQuestion(int index) {
-        // Собираем локаторы вопросов в массив для быстрого доступа по индексу
-        By[] questions = {question_0, question_1, question_2, question_3, question_4, question_5,
-                question_6, question_7};
-        WebElement element = driver.findElement(questions[index]);
+        // подставляем индекс в динамический id
+        By questionLocator = By.id(String.format(questionTemplateId, index));
+        WebElement element = driver.findElement(questionLocator);
         scrollToElement(element);
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.elementToBeClickable(element));
+        wait.until(ExpectedConditions.elementToBeClickable(element));
         element.click();
     }
     // Получить текст ответа по его номеру (от 0 до 7)
     public String getAnswerText(int index) {
-        By[] answers = {answer_0, answer_1, answer_2, answer_3, answer_4, answer_5, answer_6, answer_7};
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfElementLocated(answers[index]));
-        return driver.findElement(answers[index]).getText();
+        By answerLocator = By.id(String.format(answerTemplateId, index));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(answerLocator));
+        return driver.findElement(answerLocator).getText();
     }
     //кликаем на верхнюю кнопку "Заказать"
     public void clickUpperOrderButton() {
         driver.findElement(upperOrderButton).click();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfElementLocated(By.xpath(".//div[text()='Для кого самокат']")));
     }
     //кликаем по нижней кнопки "Заказать"
     public void clickLowerOrderButton() {
         WebElement element = driver.findElement(lowerOrderButton);
         scrollToElement(element);
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.elementToBeClickable(element));
+        wait.until(ExpectedConditions.elementToBeClickable(element));
         element.click();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.visibilityOfElementLocated(By.xpath(".//div[text()='Для кого самокат']")));
     }
     //кликаем на логотип "Самоката"
     public void clickLogoScooter() {
@@ -96,5 +78,24 @@ public class MainPage {
     //кликаем на логотип "Яндекса"
     public void clickLogoYandex() {
         driver.findElement(logoYandex).click();
+    }
+    // Метод для ожидания загрузки главной страницы
+    public void waitForMainPageToLoad() {
+        wait.until(ExpectedConditions.urlToBe(MAIN_PAGE_URL));
+    }
+    // Метод для ожидания загрузки главной страницы Яндекса
+    public void waitForYandexPageToLoad() {
+        wait.until(ExpectedConditions.urlContains("dzen.ru"));
+    }
+    // Метод для переключения на новую вкладку
+    public void switchToNewWindow(String originalWindow) {
+        wait.until(ExpectedConditions.numberOfWindowsToBe(2));
+        Set<String> allWindows = driver.getWindowHandles();
+        for (String windowHandle : allWindows) {
+            if (!windowHandle.equals(originalWindow)) {
+                driver.switchTo().window(windowHandle);
+                break;
+            }
+        }
     }
 }

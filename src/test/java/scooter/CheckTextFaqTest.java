@@ -1,10 +1,9 @@
-import org.junit.After;
-import org.junit.Before;
+package scooter;
+
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import pageObject.MainPage;
 
 import static org.junit.Assert.assertEquals;
@@ -12,8 +11,8 @@ import static org.junit.Assert.assertEquals;
 // Тест на выпадающий список "Вопросы о важном"
 @RunWith(Parameterized.class)
 public class CheckTextFaqTest {
-    //веб-драйвер
-    private WebDriver driver;
+    @Rule
+    public final BaseTest baseTest = new BaseTest();
     // Параметры для текущего теста: индекс вопроса и ожидаемый текст
     private final int index;
     private final String expectedText;
@@ -25,7 +24,7 @@ public class CheckTextFaqTest {
     }
 
     // метод с тестовыми данными для вопросов
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "Тест вопроса под индексом: {0}")
     public static Object[][] getAccordionData() {
         return new Object[][]{
                 {0, "Сутки — 400 рублей. Оплата курьеру — наличными или картой."},
@@ -39,15 +38,9 @@ public class CheckTextFaqTest {
         };
     }
 
-    @Before
-    public void setUp() {
-        driver = new ChromeDriver();
-        driver.get("https://qa-scooter.praktikum-services.ru/");
-    }
-
     @Test
     public void checkTextFaq() {
-        MainPage mainPage = new MainPage(driver);
+        MainPage mainPage = new MainPage(baseTest.getDriver());
         mainPage.acceptCookies(); //скрываем куки
         //кликаем по вопросу по его индексу
         mainPage.clickQuestion(index);
@@ -56,11 +49,6 @@ public class CheckTextFaqTest {
         //сверяем текст
         assertEquals("Текст ответа под индексом " + index + " не совпадает с ожидаемым!",
                 expectedText, actualText);
-    }
-
-    @After
-    public void tearDown() {
-        driver.quit();
     }
 }
 
